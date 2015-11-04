@@ -1,6 +1,8 @@
 /boot            emmc              /dev/block/platform/soc.0/f9824900.sdhci/by-name/boot
 /system          ext4              /dev/block/platform/soc.0/f9824900.sdhci/by-name/system
-/vendor          emmc              /dev/block/platform/soc.0/f9824900.sdhci/by-name/vendor
+/system_image    emmc              /dev/block/platform/soc.0/f9824900.sdhci/by-name/system
+/vendor          ext4              /dev/block/platform/soc.0/f9824900.sdhci/by-name/vendor     flags=display="Vendor";backup=1;mounttodecrypt
+/vendor_image    emmc              /dev/block/platform/soc.0/f9824900.sdhci/by-name/vendor
 /data	         ext4              /dev/block/platform/soc.0/f9824900.sdhci/by-name/userdata   flags=encryptable=/dev/block/platform/soc.0/f9824900.sdhci/by-name/metadata
 /cache	         ext4              /dev/block/platform/soc.0/f9824900.sdhci/by-name/cache
 /misc	          emmc              /dev/block/platform/soc.0/f9824900.sdhci/by-name/misc

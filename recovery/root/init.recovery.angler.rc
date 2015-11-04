@@ -1,0 +1,16 @@
+# separate copy needed to use /sbin/linker64 instead of /system/bin/linker64
+service sbinqseecomd /sbin/qseecomd
+    disabled
+    user root
+    group root
+
+on fs
+    # needed to make qseecomd work in recovery
+    symlink /dev/block/platform/soc.0/f9824900.sdhci /dev/block/bootdevice
+    chmod 0660 /dev/qseecom
+    chown system drmrpc /dev/qseecom
+    chmod 0664 /dev/ion
+    chown system system /dev/ion
+
+on property:ro.crypto.state=encrypted
+    start sbinqseecomd
