@@ -19,10 +19,23 @@
 
 #include <log.h>
 #include <util.h>
+#include <multirom.h>
+
+#define GATEKEEPER_PATH "/system/lib64/hw/gatekeeper.angler.so"
+#define GATEKEEPER_FAKE_SOURCE "/system/build.prop"
 
 #if MR_DEVICE_HOOKS >= 1
+
 int mrom_hook_after_android_mounts(const char *busybox_path, const char *base_path, int type)
 {
+    if (type == ROM_DEFAULT)
+        return 0;
+    // Disable the hardware gatekeeper module to prevent the secondary ROM from corrupting primary ROM's password
+    if (access(GATEKEEPER_PATH, R_OK) != 0)
+    {
+        // make the system try to load build.prop instead - which will give library corrupt error, which is what we need
+        link(GATEKEEPER_FAKE_SOURCE, GATEKEEPER_PATH);
+    }
     return 0;
 }
 #endif /* MR_DEVICE_HOOKS >= 1 */
@@ -49,13 +62,52 @@ int mrom_hook_allow_incomplete_fstab(void)
 #endif
 
 #if MR_DEVICE_HOOKS >= 5
+
+static void replace_tag(char *cmdline, size_t cap, const char *tag, const char *what)
+{
+    char *start, *end;
+    char *str = cmdline;
+    char *str_end = str + strlen(str);
+    size_t replace_len = strlen(what);
+
+    while((start = strstr(str, tag)))
+    {
+        end = strstr(start, " ");
+        if(!end)
+            end = str_end;
+        else if(replace_len == 0)
+            ++end;
+
+        if(end != start)
+        {
+
+            size_t len = str_end - end;
+            if((start - cmdline)+replace_len+len > cap)
+                len = cap - replace_len - (start - cmdline);
+            memmove(start+replace_len, end, len+1); // with \0
+            memcpy(start, what, replace_len);
+        }
+
+        str = start+replace_len;
+    }
+}
+
 void mrom_hook_fixup_bootimg_cmdline(char *bootimg_cmdline, size_t bootimg_cmdline_cap)
 {
+    // force dm-verity to Logging mode to prevent scary "your phone is corrupt" message
+    replace_tag(bootimg_cmdline, bootimg_cmdline_cap, "androidboot.veritymode=", "androidboot.veritymode=logging");
 }
 
 int mrom_hook_has_kexec(void)
 {
-    return -1;
+    // check for fdt blob
+    static const char *checkfile = "/sys/firmware/fdt";
+    if(access(checkfile, R_OK) < 0)
+    {
+        ERROR("%s was not found!\n", checkfile);
+        return 0;
+    }
+    return 1;
 }
 #endif
 
