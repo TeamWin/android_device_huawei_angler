@@ -63,39 +63,8 @@ int mrom_hook_allow_incomplete_fstab(void)
 
 #if MR_DEVICE_HOOKS >= 5
 
-static void replace_tag(char *cmdline, size_t cap, const char *tag, const char *what)
-{
-    char *start, *end;
-    char *str = cmdline;
-    char *str_end = str + strlen(str);
-    size_t replace_len = strlen(what);
-
-    while((start = strstr(str, tag)))
-    {
-        end = strstr(start, " ");
-        if(!end)
-            end = str_end;
-        else if(replace_len == 0)
-            ++end;
-
-        if(end != start)
-        {
-
-            size_t len = str_end - end;
-            if((start - cmdline)+replace_len+len > cap)
-                len = cap - replace_len - (start - cmdline);
-            memmove(start+replace_len, end, len+1); // with \0
-            memcpy(start, what, replace_len);
-        }
-
-        str = start+replace_len;
-    }
-}
-
 void mrom_hook_fixup_bootimg_cmdline(char *bootimg_cmdline, size_t bootimg_cmdline_cap)
 {
-    // force dm-verity to Logging mode to prevent scary "your phone is corrupt" message
-    replace_tag(bootimg_cmdline, bootimg_cmdline_cap, "androidboot.veritymode=", "androidboot.veritymode=logging");
 }
 
 int mrom_hook_has_kexec(void)
@@ -157,5 +126,40 @@ void tramp_hook_encryption_cleanup(void)
     if (lstat("/dev/block/bootdevice", &info) >= 0 && S_ISLNK(info.st_mode))
         remove("/dev/block/bootdevice");
     INFO("cleaned up after qseecomd\n");
+}
+
+static void replace_tag(char *cmdline, size_t cap, const char *tag, const char *what)
+{
+    char *start, *end;
+    char *str = cmdline;
+    char *str_end = str + strlen(str);
+    size_t replace_len = strlen(what);
+
+    while((start = strstr(str, tag)))
+    {
+        end = strstr(start, " ");
+        if(!end)
+            end = str_end;
+        else if(replace_len == 0)
+            ++end;
+
+        if(end != start)
+        {
+
+            size_t len = str_end - end;
+            if((start - cmdline)+replace_len+len > cap)
+                len = cap - replace_len - (start - cmdline);
+            memmove(start+replace_len, end, len+1); // with \0
+            memcpy(start, what, replace_len);
+        }
+
+        str = start+replace_len;
+    }
+}
+
+void mrom_hook_fixup_full_cmdline(char *bootimg_cmdline, size_t bootimg_cmdline_cap)
+{
+    // force dm-verity to Logging mode to prevent scary "your phone is corrupt" message
+    replace_tag(bootimg_cmdline, bootimg_cmdline_cap, "androidboot.veritymode=", "androidboot.veritymode=logging");
 }
 #endif
