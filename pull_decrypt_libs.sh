@@ -31,7 +31,7 @@ do
 	echo $i
 	outfile="multirom_enc_blobs/$i"
 	mkdir -p `dirname $outfile`
-	adb pull "/system/lib/$i" $outfile
+	adb pull "/system/lib64/$i" $outfile
 done
 mv multirom_enc_blobs/linker64 multirom_enc_blobs/linker
 mkdir -p multirom_enc_blobs/vendor/lib64/hw
