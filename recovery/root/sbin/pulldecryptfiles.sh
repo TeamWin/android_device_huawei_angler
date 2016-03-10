@@ -14,6 +14,7 @@ cp /vendor/lib64/libdrmtime.so /sbin/libdrmtime.so
 cp /vendor/lib64/librpmb.so /sbin/librpmb.so
 cp /vendor/lib64/libssd.so /sbin/libssd.so
 cp /vendor/lib64/libdiag.so /sbin/libdiag.so
+cp /vendor/lib64/libkmcrypto.so /sbin/libkmcrypto.so
 
 umount /vendor
 
